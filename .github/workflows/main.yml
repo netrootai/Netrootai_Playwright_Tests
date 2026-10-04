@@ -1,0 +1,86 @@
+```yaml
+name: Netroot AI Playwright Tests
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+
+  pull_request:
+    branches:
+      - main
+      - develop
+
+  workflow_dispatch:
+
+jobs:
+  playwright-tests:
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+
+      matrix:
+        browser:
+          - chromium
+          - firefox
+          - webkit
+
+    steps:
+
+      # 1. Checkout repository
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2. Setup Python
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      # 3. Install Python dependencies
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # 4. Install Playwright browser
+      - name: Install Playwright
+        run: |
+          playwright install --with-deps ${{ matrix.browser }}
+
+      # 5. Create report directory
+      - name: Create report directory
+        run: |
+          mkdir -p reports
+
+      # 6. Run Playwright tests
+      - name: Run tests
+        run: |
+          pytest \
+            --browser ${{ matrix.browser }} \
+            --html=reports/report-${{ matrix.browser }}.html \
+            --self-contained-html
+
+      # 7. Upload HTML report
+      - name: Upload HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ matrix.browser }}
+          path: reports/
+
+      # 8. Upload screenshots
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshots-${{ matrix.browser }}
+          path: |
+            screenshots/
+            test-results/
+          if-no-files-found: ignore
+```
