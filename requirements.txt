@@ -1,0 +1,5 @@
+pytest>=8.0
+pytest-playwright>=0.5
+pytest-html>=4.1
+pytest-xdist>=3.5
+axe-playwright-python>=0.1.4
